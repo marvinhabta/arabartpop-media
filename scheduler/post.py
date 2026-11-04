@@ -7,6 +7,9 @@ in scheduler/posted.json.
 
 Networks:
   facebook  -> Facebook Page Reel (Meta Graph API, Reels Publishing API)
+  instagram -> Instagram Reel (Instagram Graph API, account linked to the Page)
+
+A post with "hold": true is skipped until the hold is removed.
 
 Secrets (GitHub repo -> Settings -> Secrets and variables -> Actions):
   FB_PAGE_TOKEN   long-lived Facebook Page access token
@@ -91,6 +94,38 @@ def post_facebook_reel(p, page_id, token):
     return vid  # still processing; Facebook will finish publishing on its own
 
 
+RAW = "https://raw.githubusercontent.com/marvinhabta/arabartpop-media/main/"
+
+
+def ig_user_id(page_id, token):
+    r = http("GET", f"{GRAPH}/{page_id}?fields=instagram_business_account&access_token={urllib.parse.quote(token)}")
+    ig = r.get("instagram_business_account", {}).get("id")
+    if not ig:
+        raise RuntimeError("No Instagram professional account is linked to the Facebook Page")
+    return ig
+
+
+def post_instagram_reel(p, page_id, token):
+    ig = ig_user_id(page_id, token)
+    data = {"media_type": "REELS", "video_url": RAW + p["video"], "caption": p["text"],
+            "share_to_feed": "true", "access_token": token}
+    if p.get("cover"):
+        data["cover_url"] = RAW + p["cover"]
+    c = http("POST", f"{GRAPH}/{ig}/media", data=data)
+    cid = c["id"]
+    for _ in range(60):  # up to 15 min of processing
+        st = http("GET", f"{GRAPH}/{cid}?fields=status_code,status&access_token={urllib.parse.quote(token)}")
+        if st.get("status_code") == "FINISHED":
+            break
+        if st.get("status_code") in ("ERROR", "EXPIRED"):
+            raise RuntimeError(f"Instagram processing failed: {st}")
+        time.sleep(15)
+    else:
+        raise RuntimeError("Instagram processing timed out")
+    r = http("POST", f"{GRAPH}/{ig}/media_publish", data={"creation_id": cid, "access_token": token})
+    return r["id"]
+
+
 def main():
     sched = json.loads(SCHED.read_text())
     posted = json.loads(POSTED.read_text()) if POSTED.exists() else {}
@@ -101,7 +136,7 @@ def main():
     failures = 0
 
     for p in sched["posts"]:
-        if p["id"] in posted:
+        if p["id"] in posted or p.get("hold"):
             continue
         when = dt.datetime.fromisoformat(p["when"]).replace(tzinfo=tz)
         if when > now:
@@ -118,11 +153,13 @@ def main():
         if DRY:
             continue
         try:
+            token = os.environ.get("FB_PAGE_TOKEN")
+            if not token:
+                raise RuntimeError("FB_PAGE_TOKEN secret is not set")
             if p["network"] == "facebook":
-                token = os.environ.get("FB_PAGE_TOKEN")
-                if not token:
-                    raise RuntimeError("FB_PAGE_TOKEN secret is not set")
                 rid = post_facebook_reel(p, cfg["facebook_page_id"], token)
+            elif p["network"] == "instagram":
+                rid = post_instagram_reel(p, cfg["facebook_page_id"], token)
             else:
                 raise RuntimeError(f"unsupported network {p['network']}")
             posted[p["id"]] = {"status": "published", "remote_id": rid, "at": now.isoformat()}
