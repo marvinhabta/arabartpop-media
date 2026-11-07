@@ -2,7 +2,7 @@
   "_tries": {
     "fb-2026-11-05-UyunAlMaha_2_AdriWalaAdri-Hook": 3,
     "fb-2026-11-06-UyunAlMaha_4_WalaWasl-Climax": 3,
-    "fb-2026-11-07-AdriWalaAdri_2_Hook": 2
+    "fb-2026-11-07-AdriWalaAdri_2_Hook": 3
   },
   "fb-2026-11-05-UyunAlMaha_2_AdriWalaAdri-Hook": {
     "status": "failed",
@@ -13,5 +13,10 @@
     "status": "failed",
     "error": "FB_PAGE_TOKEN secret is not set",
     "at": "2026-11-06T18:37:17.669032+00:00"
+  },
+  "fb-2026-11-07-AdriWalaAdri_2_Hook": {
+    "status": "failed",
+    "error": "FB_PAGE_TOKEN secret is not set",
+    "at": "2026-11-07T18:24:27.409475+00:00"
   }
 }
