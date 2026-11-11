@@ -6,7 +6,7 @@
     "fb-2026-11-08-UyunAlMaha_1_Opening": 3,
     "fb-2026-11-09-AdriWalaAdri_4_FinalChorus": 3,
     "fb-2026-11-10-UyunAlMaha_3_WaQulnaLana": 3,
-    "fb-2026-11-11-AdriWalaAdri_1_Opening": 2
+    "fb-2026-11-11-AdriWalaAdri_1_Opening": 3
   },
   "fb-2026-11-05-UyunAlMaha_2_AdriWalaAdri-Hook": {
     "status": "failed",
@@ -37,5 +37,10 @@
     "status": "failed",
     "error": "FB_PAGE_TOKEN secret is not set",
     "at": "2026-11-10T18:56:41.579179+00:00"
+  },
+  "fb-2026-11-11-AdriWalaAdri_1_Opening": {
+    "status": "failed",
+    "error": "FB_PAGE_TOKEN secret is not set",
+    "at": "2026-11-11T19:11:16.096900+00:00"
   }
 }
